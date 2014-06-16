@@ -17,8 +17,9 @@ var Link = function(obj) {
 var Graph = function(data, config) {
 
   this.svg = d3.select("body").append("svg")
-      .attr("width", config.width)
-      .attr("height", config.height);
+    .attr("width", config.width)
+    .attr("height", config.height)
+    .append("g");
 
   this.defs = this.svg.append("defs")
 
@@ -51,6 +52,14 @@ var Graph = function(data, config) {
 
   this.datgui = new dat.GUI();
 
+  this.datgui.add(this.config, 'dataset', Object.keys(this.store)).onChange(function (d) {
+    this.svg.selectAll(".node").remove();
+    this.svg.selectAll(".link").remove();
+    this.setData();
+    this.update();
+    this.force.start()
+  }.bind(this));
+
   this.datgui.add(this.config, 'charge', -1000, 1000).onChange(function (d) {
     this.force.charge(d);
     this.force.start()
@@ -62,7 +71,7 @@ var Graph = function(data, config) {
   }.bind(this));
 
   this.datgui.add(this.config, 'friction', 0, 1).onChange(function (d) {
-    this.force.charge(d);
+    this.force.friction(d);
     this.force.start()
   }.bind(this));
 
@@ -80,6 +89,26 @@ var Graph = function(data, config) {
 
   link_gui.open();
 
+  this.setData();
+
+};
+
+Graph.prototype.setData = function () {
+
+  console.log(this.config.dataset)
+  var data = this.store[this.config.dataset];
+
+  this.nodes = {};
+  this.links = {};
+
+  for (var i = 0; i < data.length; i++) {
+    this.addNode({id:i});
+  }
+  for (var j = 0; j < data.length; j++) {
+    for (var k = 0; k < data[j].length; k++) {
+      this.addLink(j, data[j][k]);
+    }
+  }
 };
 
 Graph.prototype.addNode = function (obj) {
@@ -98,7 +127,7 @@ Graph.prototype.getNodes = function () {
 Graph.prototype.removeNode = function (nodeID) {
   var node = this.nodes[nodeID], links = this.links;
   if (node) {
-    delete node;
+    delete this.nodes[nodeID];
 
     for (var l in links) {
       if (links[l].source === node || links[l].target === node) {
@@ -150,18 +179,28 @@ Graph.prototype.update = function(){
     .start();
 
   var link = graph.svg.selectAll(".link")
-    .data(this.getLinks())
-    .enter().append("line")
+    .data(links, function (d) { return d.id; });
+    
+  link.enter().append("line")
       .attr("class", "link")
       .style("stroke-width", "2px");
 
+  link.exit().remove();
+
   var node = graph.svg.selectAll(".node")
-    .data(this.getNodes())
-    .enter().append("circle")
+    .data(nodes, function (d) { return d.id; });
+
+  node.enter().append("circle")
       .attr("class", "node")
       .attr("r", 10)
       .style("fill", "url(#nodeGradient)")
+      .on('dblclick', function (d) {
+        this.removeNode(d.id);
+        this.update();
+      }.bind(this))
       .call(this.force.drag);
+
+  node.exit().remove();
 
   this.force.on('tick', function () {
     link
@@ -174,4 +213,16 @@ Graph.prototype.update = function(){
       .attr("cx", function (d) { return d.x; })
       .attr("cy", function (d) { return d.y; });
   });
+};
+
+Graph.prototype.onResize = function(){
+  var width = window.innerWidth;
+  var height = window.innerHeight;
+
+  this.svg
+    .attr("width", width)
+    .attr("height", height);
+
+  this.force.size([width, height]);
+  this.force.start();
 };
