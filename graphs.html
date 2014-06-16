@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>delimited | Force Directed Graphs in D3</title>
+    <style type="text/css">
+      html { 
+        background: url(img/bg.jpg) no-repeat center center fixed; 
+        -webkit-background-size: cover;
+        -moz-background-size: cover;
+        -o-background-size: cover;
+        background-size: cover;
+      }
+      .link {
+        stroke: #fff;
+        stroke-opacity: .8;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="lib/d3/d3.js"></script>
+    <script src="lib/dat.gui/dat.gui.min.js"></script>
+    <script src="js/graph.js"></script>
+    <script>
+      d3.json('data/snarks.json', function (error, data) {
+
+        var config = new Config({
+          height: window.innerHeight,
+          width: window.innerWidth,
+          dataset: 'snark56',
+          gravity: 0.28,
+          charge: -650,
+          friction: 0.90,
+          distance: 10,
+          strength: 0.9
+        });
+
+        window.graph = new Graph(data, config);
+        graph.update();
+        window.addEventListener('resize', graph.onResize.bind(graph), true);
+      });
+    </script>
+  </body>
+</html>
