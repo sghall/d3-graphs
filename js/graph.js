@@ -1,26 +1,44 @@
+//****************************************************
+// THIS IS THE OBJECT THAT DAT.GUI UPDATES
+// SEE: http://workshop.chromeexperiments.com/examples/gui/
+//****************************************************
 var Config = function (options) {
   for (var opt in options) {
     this[opt] = options[opt];
   }
 };
 
+//****************************************************
+// BASIC NODE CLASS - YOU COULD STORE OTHER INFO HERE
+//****************************************************
 var Node = function(obj) {
   this.id = obj.id;
 };
 
+//****************************************************
+// BASIC LINK CLASS - YOU COULD STORE OTHER INFO HERE
+//****************************************************
 var Link = function(obj) {
   this.id = obj.id;
   this.source = obj.source;
   this.target = obj.target;
 };
 
+//******************************************************
+// MAIN GRAPH CLASS CONSTRUCTOR
+//******************************************************
 var Graph = function(data, config) {
-
+  //****************************************************
+  // SET-UP GRAPH SVG
+  //****************************************************
   this.svg = d3.select("body").append("svg")
     .attr("width", config.width)
     .attr("height", config.height)
     .append("g");
 
+  //****************************************************
+  // THIS ENTIRE BLOCK JUST CREATES A RADIAL GRADIENT :)
+  //****************************************************
   this.defs = this.svg.append("defs")
 
   this.gradient = this.defs.append("radialGradient")
@@ -36,20 +54,31 @@ var Graph = function(data, config) {
     .attr("offset", "100%")
     .attr("stop-color", "#0000EE")
 
-  this.nodes  = {};
-  this.links  = {};
-  this.store  = data;
-  this.config = config;
-  this.force  = d3.layout.force()
+  //****************************************************
+  // MAIN GOODIES FOR THE GRAPH OBJECT
+  //****************************************************
+  this.nodes  = {};     // Object holding all the nodes
+  this.links  = {};     // Object holding all the links
+  this.store  = data;   // Main data store
+  this.config = config; // The passed in config object
 
+  //*********************************************************
+  // CONFIGURE THE FORCE LAYOUT FOR THE GRAPH
+  // SET TO PASSED IN CONFIG VALUES THEN CHANGED VIA DAT.GUI
+  //*********************************************************
+  this.force  = d3.layout.force()
   this.force
     .gravity(config.gravity)
     .charge(config.charge)
+    .theta(config.theta)
     .friction(config.friction)
     .linkDistance(config.distance)
     .linkStrength(config.strength)
     .size([config.width, config.height]);
 
+  //***********************************************************
+  // SET DATA.GUI TO CHANGE VALUES IN THE CONFIG OBJECT
+  //***********************************************************
   this.datgui = new dat.GUI();
 
   this.datgui.add(this.config, 'dataset', Object.keys(this.store)).onChange(function (d) {
@@ -58,6 +87,7 @@ var Graph = function(data, config) {
     this.setData();
     this.update();
     this.force.start()
+    this.shake();
   }.bind(this));
 
   this.datgui.add(this.config, 'charge', -1000, 1000).onChange(function (d) {
@@ -67,6 +97,11 @@ var Graph = function(data, config) {
 
   this.datgui.add(this.config, 'gravity', -0.1, 1).onChange(function (d) {
     this.force.gravity(d);
+    this.force.start()
+  }.bind(this));
+
+  this.datgui.add(this.config, 'theta', 0, 1).onChange(function (d) {
+    this.force.theta(d);
     this.force.start()
   }.bind(this));
 
@@ -87,15 +122,18 @@ var Graph = function(data, config) {
     this.force.start()
   }.bind(this));
 
-  link_gui.open();
+  link_gui.open(); // LEAVE "LINKS" FOLDER OPEN ON LOAD
 
-  this.setData();
-
+  this.setData();  // INITIALIZE THE DATA TO THE PASSED IN DATASET
 };
 
+//***************************************************
+// GRAPH.PROTOTYPE METHODS
+//***************************************************
+//******************************************
+// LOAD A PARTICULAR DATASET FROM THE STORE
+//******************************************
 Graph.prototype.setData = function () {
-
-  console.log(this.config.dataset)
   var data = this.store[this.config.dataset];
 
   this.nodes = {};
@@ -111,11 +149,31 @@ Graph.prototype.setData = function () {
   }
 };
 
+//******************************************
+// SHAKES THE GRAPH OUT TO MINIMIZE TANLGLES
+//******************************************
+Graph.prototype.shake = function () {
+  setTimeout(function () {
+    this.force.gravity(.0001);
+    this.force.start();
+  }.bind(this), 500)
+  setTimeout(function () {
+    this.force.gravity(this.config.gravity);
+    this.force.start();
+  }.bind(this), 1500)
+};
+
+//******************************************
+// ADD A NEW NODE - NEEDS A UNIQUE ID
+//******************************************
 Graph.prototype.addNode = function (obj) {
   if (obj.id === undefined) throw "Node ID required";
   this.nodes[obj.id] = new Node(obj);
 };
 
+//******************************************
+// RETURN AN ARRAY OF NODES FOR RENDER IN D3
+//******************************************
 Graph.prototype.getNodes = function () {
   var nodesArr = [];
   for (var key in this.nodes) {
@@ -124,6 +182,9 @@ Graph.prototype.getNodes = function () {
   return nodesArr;
 };
 
+//******************************************
+// REMOVE A NODE AND ALL ITS LINKS
+//******************************************
 Graph.prototype.removeNode = function (nodeID) {
   var node = this.nodes[nodeID], links = this.links;
   if (node) {
@@ -139,6 +200,9 @@ Graph.prototype.removeNode = function (nodeID) {
   }
 };
 
+//******************************************
+// ADD A LINK BY PASSING IN TWO NODE IDs
+//******************************************
 Graph.prototype.addLink = function(begID, endID){
   var beg, end, lid;
   if (this.nodes[begID] && this.nodes[begID]) {
@@ -151,6 +215,9 @@ Graph.prototype.addLink = function(begID, endID){
   }
 };
 
+//******************************************
+// RETURN AN ARRAY OF LINKS FOR RENDER IN D3
+//******************************************
 Graph.prototype.getLinks = function () {
   var linksArr = [];
   for (var key in this.links) {
@@ -159,6 +226,9 @@ Graph.prototype.getLinks = function () {
   return linksArr;
 };
 
+//******************************************
+// REMOVE A PARTICULAR LINK
+//******************************************
 Graph.prototype.removeLink = function(begID, endID){
   var beg = begID < endID ? begID: endID;
   var end = begID < endID ? endID: begID;
@@ -169,6 +239,10 @@ Graph.prototype.removeLink = function(begID, endID){
   }
 };
 
+//******************************************
+// MAIN METHOD FOR UPDATING THE SCREEN WHEN
+// NODES AND LINKS HAVE CHANGED
+//******************************************
 Graph.prototype.update = function(){
   var nodes = this.getNodes();
   var links = this.getLinks();
@@ -215,6 +289,9 @@ Graph.prototype.update = function(){
   });
 };
 
+//*********************************************
+// RESIZE SVG AND FORCE WHEN ON BROWSER RESIZE
+//*********************************************
 Graph.prototype.onResize = function(){
   var width = window.innerWidth;
   var height = window.innerHeight;
