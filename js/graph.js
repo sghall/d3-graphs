@@ -259,7 +259,10 @@ Graph.prototype.update = function(){
       .attr("class", "link")
       .style("stroke-width", "2px");
 
-  link.exit().remove();
+  link.exit().style("stroke", "red")
+    .transition().duration(1000)
+    .style("opacity", 0)
+    .remove();
 
   var node = graph.svg.selectAll(".node")
     .data(nodes, function (d) { return d.id; });
@@ -274,7 +277,10 @@ Graph.prototype.update = function(){
       }.bind(this))
       .call(this.force.drag);
 
-  node.exit().remove();
+  node.exit().transition().duration(1000)
+    .attr("cx", 2000)
+    .attr("cy", 2000)
+    .remove();
 
   this.force.on('tick', function () {
     link
@@ -290,7 +296,7 @@ Graph.prototype.update = function(){
 };
 
 //*********************************************
-// RESIZE SVG AND FORCE WHEN ON BROWSER RESIZE
+// RESIZE SVG AND FORCE ON BROWSER RESIZE
 //*********************************************
 Graph.prototype.onResize = function(){
   var width = window.innerWidth;
