@@ -11,14 +11,32 @@
         -moz-background-size: cover;
         -o-background-size: cover;
         background-size: cover;
+        color: white;
+        overflow: hidden;
+      }
+      a {
+        color: white;
+      }
+      #intro {
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        background: transparent;
       }
       .link {
         stroke: #fff;
-        stroke-opacity: .8;
+        stroke-width: 3px;
+        stroke-opacity: .5;
       }
     </style>
   </head>
   <body>
+    <div id="intro">
+      <h1>Snark Graphs in D3</h1>
+      <h4>Click to drag nodes. Double Click to Remove nodes</h4>
+      <a href="http://en.wikipedia.org/wiki/Snark_(graph_theory)" target="blank">Snarks on Wikipedia</a><br/>
+      <a href="https://github.com/mbostock/d3/wiki/Force-Layout" target="blank">D3 Force Documentation</a>
+    </div>
     <script src="lib/d3/d3.js"></script>
     <script src="lib/dat.gui/dat.gui.min.js"></script>
     <script src="js/graph.js"></script>
@@ -28,16 +46,18 @@
         var config = new Config({
           height: window.innerHeight,
           width: window.innerWidth,
-          dataset: 'snark56',
-          gravity: 0.28,
-          charge: -650,
-          friction: 0.90,
+          dataset: 'snark40',
+          gravity: 0.21,
+          charge: -550,
+          theta: 0.9,
+          friction: 0.9,
           distance: 10,
           strength: 0.9
         });
 
         window.graph = new Graph(data, config);
         graph.update();
+        graph.shake();
         window.addEventListener('resize', graph.onResize.bind(graph), true);
       });
     </script>
