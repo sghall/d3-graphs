@@ -37,7 +37,7 @@ var Graph = function(data, config) {
     .append("g");
 
   //****************************************************
-  // CREATE A RADIAL GRADIENT
+  // CREATE A RADIAL GRADIENT - USED ON NODES
   //****************************************************
   this.defs = this.svg.append("defs")
 
@@ -77,7 +77,7 @@ var Graph = function(data, config) {
     .size([config.width, config.height]);
 
   //***********************************************************
-  // SET DATA.GUI TO CHANGE VALUES IN THE CONFIG OBJECT
+  // SET DAT.GUI TO CHANGE VALUES IN THE CONFIG OBJECT
   //***********************************************************
   this.datgui = new dat.GUI();
 
