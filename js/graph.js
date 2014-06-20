@@ -37,7 +37,7 @@ var Graph = function(data, config) {
     .append("g");
 
   //****************************************************
-  // THIS ENTIRE BLOCK JUST CREATES A RADIAL GRADIENT :)
+  // CREATE A RADIAL GRADIENT
   //****************************************************
   this.defs = this.svg.append("defs")
 
@@ -59,14 +59,14 @@ var Graph = function(data, config) {
   //****************************************************
   this.nodes  = {};     // Object holding all the nodes
   this.links  = {};     // Object holding all the links
-  this.store  = data;   // Main data store
+  this.store  = data;   // Data store w/ all the graphs
   this.config = config; // The passed in config object
 
   //*********************************************************
-  // CONFIGURE THE FORCE LAYOUT FOR THE GRAPH
-  // SET TO PASSED IN CONFIG VALUES THEN CHANGED VIA DAT.GUI
+  // CONFIGURE THE FORCE LAYOUT FOR THE GRAPH SET TO PASSED 
+  // IN CONFIG VALUES. THEN THESE ARE UPDATED VIA DAT.GUI
   //*********************************************************
-  this.force  = d3.layout.force()
+  this.force = d3.layout.force()
   this.force
     .gravity(config.gravity)
     .charge(config.charge)
@@ -123,12 +123,11 @@ var Graph = function(data, config) {
   }.bind(this));
 
   link_gui.open(); // LEAVE "LINKS" FOLDER OPEN ON LOAD
-
   this.setData();  // INITIALIZE THE DATA TO THE PASSED IN DATASET
 };
 
 //***************************************************
-// GRAPH.PROTOTYPE METHODS
+// GRAPH.PROTOTYPE
 //***************************************************
 //******************************************
 // LOAD A PARTICULAR DATASET FROM THE STORE
@@ -150,7 +149,7 @@ Graph.prototype.setData = function () {
 };
 
 //******************************************
-// SHAKES THE GRAPH OUT TO MINIMIZE TANLGLES
+// "SHAKES" GRAPH OUT TO MINIMIZE TANGLES
 //******************************************
 Graph.prototype.shake = function () {
   setTimeout(function () {
@@ -201,15 +200,15 @@ Graph.prototype.removeNode = function (nodeID) {
 };
 
 //******************************************
-// ADD A LINK BY PASSING IN TWO NODE IDs
+// ADD A LINK BY PASSING IN NODE IDs
 //******************************************
 Graph.prototype.addLink = function(begID, endID){
-  var beg, end, lid;
+  var node1, node2, lid;
   if (this.nodes[begID] && this.nodes[begID]) {
-    beg = this.nodes[begID < endID ? begID: endID];
-    end = this.nodes[begID < endID ? endID: begID];
-    lid = beg.id + '_' + end.id;
-    this.links[lid] = new Link({id: lid, source: beg, target: end});
+    node1 = this.nodes[begID < endID ? begID: endID];
+    node2 = this.nodes[begID < endID ? endID: begID];
+    lid = node1.id + '_' + node2.id;
+    this.links[lid] = new Link({id: lid, source: node1, target: node2});
   } else {
     throw "Both nodes must exist in the graph";
   }
@@ -230,18 +229,17 @@ Graph.prototype.getLinks = function () {
 // REMOVE A PARTICULAR LINK
 //******************************************
 Graph.prototype.removeLink = function(begID, endID){
-  var beg = begID < endID ? begID: endID;
-  var end = begID < endID ? endID: begID;
-  if (this.links[beg + '_' + end]) {
-    delete this.links[beg + '_' + end];
+  var id1 = begID < endID ? begID: endID;
+  var id2 = begID < endID ? endID: begID;
+  if (this.links[id1 + '_' + id2]) {
+    delete this.links[id1 + '_' + id2];
   } else {
     throw "Link not found";
   }
 };
 
 //******************************************
-// MAIN METHOD FOR UPDATING THE SCREEN WHEN
-// NODES AND LINKS HAVE CHANGED
+// UPDATE WHEN NODES AND LINKS HAVE CHANGED
 //******************************************
 Graph.prototype.update = function(){
   var nodes = this.getNodes();
@@ -256,11 +254,11 @@ Graph.prototype.update = function(){
     .data(links, function (d) { return d.id; });
     
   link.enter().append("line")
-      .attr("class", "link")
-      .style("stroke-width", "2px");
+    .attr("class", "link")
+    .style("stroke-width", "2px");
 
   link.exit().style("stroke", "red")
-    .transition().duration(1000)
+    .transition().duration(800)
     .style("opacity", 0)
     .remove();
 
@@ -268,14 +266,14 @@ Graph.prototype.update = function(){
     .data(nodes, function (d) { return d.id; });
 
   node.enter().append("circle")
-      .attr("class", "node")
-      .attr("r", 10)
-      .style("fill", "url(#nodeGradient)")
-      .on('dblclick', function (d) {
-        this.removeNode(d.id);
-        this.update();
-      }.bind(this))
-      .call(this.force.drag);
+    .attr("class", "node")
+    .attr("r", 10)
+    .style("fill", "url(#nodeGradient)")
+    .on('dblclick', function (d) {
+      this.removeNode(d.id);
+      this.update();
+    }.bind(this))
+    .call(this.force.drag);
 
   node.exit().transition().duration(1000)
     .attr("cx", 2000)
