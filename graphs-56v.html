@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>delimited | Force Directed Graphs in D3</title>
+    <style type="text/css">
+      html { 
+        background: url(img/bg.jpg) no-repeat center center fixed; 
+        -webkit-background-size: cover;
+        -moz-background-size: cover;
+        -o-background-size: cover;
+        background-size: cover;
+        color: white;
+        overflow: hidden;
+      }
+      a {
+        color: white;
+      }
+      #intro {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        background: transparent;
+      }
+      .link {
+        stroke: #fff;
+        stroke-width: 3px;
+        stroke-opacity: .5;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="intro">
+      <h1>Snark Graphs in D3</h1>
+      <h4>Click to drag nodes. Double Click to Remove nodes</h4>
+      <a href="http://en.wikipedia.org/wiki/Snark_(graph_theory)" target="blank">Snarks on Wikipedia</a><br/>
+      <a href="https://github.com/mbostock/d3/wiki/Force-Layout" target="blank">D3 Force Documentation</a>
+    </div>
+    <script src="lib/d3/d3.min.js"></script>
+    <script src="lib/dat.gui/dat.gui.min.js"></script>
+    <script src="js/graph.js"></script>
+    <script>
+      d3.json('data/snarks.json', function (error, data) {
+
+        var config = new Config({
+          height: window.innerHeight,
+          width: window.innerWidth,
+          dataset: 'snark56',
+          gravity: 0.21,
+          charge: -400,
+          theta: 0.9,
+          friction: 0.9,
+          distance: 10,
+          strength: 0.9
+        });
+
+        window.graph = new Graph(data, config);
+        graph.update();
+        graph.shake();
+        window.addEventListener('resize', graph.onResize.bind(graph), true);
+      });
+    </script>
+  </body>
+</html>
