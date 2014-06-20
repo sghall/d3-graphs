@@ -1,11 +1,8 @@
 {
-  "name": "d3-force-graphs",
+  "name": "d3-graphs",
   "version": "0.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "author": "Steve Hall <hall.steven.g@gmail.com> (http://delimited.io/)",
   "license": "ISC",
   "dependencies": {
